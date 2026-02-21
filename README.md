@@ -1,6 +1,6 @@
 # Fullstack Weather App
 
-A full-stack weather application that goes beyond basic temperature retrieval. I focused on building a resilient backend using Python and a responsive, framework-free frontend. I also intentionally used keyless APIs and web scraping so anyone cloning this repo can run it immediately without setting up billing accounts or API keys.
+A full-stack weather application that goes beyond basic temperature retrieval. I focused on building a resilient backend using Python and a responsive, framework-free frontend. The app integrates multiple APIs for weather data, location context, mapping, and travel videos.
 
 ## Tech Stack
 
@@ -28,19 +28,19 @@ I integrated multiple data sources to give the user a complete picture of their 
 * **Location Context:** Connects to the Wikipedia API to pull a quick summary of the destination.
 * **Interactive Mapping:** Embeds a dynamic map of the exact coordinates using OpenStreetMap.
 
-### 3. Data Extraction (YouTube)
+### 3. YouTube Travel Videos
 
-I built a custom backend web scraper. When a user searches for a city, the backend quietly scrapes YouTube for a local travel tour video, parses the raw HTML using regex to find the first organic video ID, and serves it to a responsive iframe on the frontend.
+When a user searches for a city, the backend calls the YouTube Data API v3 to find relevant travel guide videos. Two video links are returned and displayed as clickable links on the frontend. Requires a YouTube API key set in the `.env` file.
 
 ### 4. Data Export
 
 * Users can click the "Export Data to CSV" button.
 * The backend queries the SQLite database, formats the data in memory, and triggers an immediate `.csv` file download.
 
-### 5. Error Handling & Responsive UI
+### 5. Session-Based Database
 
-* **Graceful Failures:** If a user types gibberish or a city doesn't exist, the backend catches it and sends a clean error message back to the UI without crashing the server.
-* **Responsive Design:** The CSS uses dynamic grids so the layout adapts perfectly for every device.
+* The SQLite database automatically clears when the server shuts down.
+* Each session starts fresh so old search data doesn't persist between runs.
 
 
 ## How to Run the Project
@@ -53,19 +53,23 @@ git clone https://github.com/anushacodes/weather-app-fullstack.git
 
 2. **Install the required Python libraries:**
 ```bash
-pip install fastapi uvicorn requests
-
+pip install -r requirements.txt
 ```
 
 
-3. **Start the FastAPI server:**
+3. **Set up your `.env` file:**
+```bash
+YOUTUBE_API_KEY=your_youtube_api_key_here
+```
+
+
+4. **Start the FastAPI server:**
 ```bash
 uvicorn app:app --reload
-
 ```
 
 
-4. **Open the app:**
+5. **Open the app:**
 Open your web browser and go exactly to: `http://127.0.0.1:8000`
 
 
