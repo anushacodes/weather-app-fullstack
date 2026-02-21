@@ -1,12 +1,12 @@
 # Fullstack Weather App
 
-A full-stack weather application that goes beyond basic temperature retrieval. I focused on building a resilient backend using Python and a responsive, framework-free frontend. I also intentionally used keyless APIs and web scraping so anyone cloning this repo can run it immediately without setting up billing accounts or API keys.The Product Manager Accelerator Program is designed to support PM professionals through every stage of their careers. From students looking for entry-level jobs to Directors looking to take on a leadership role, our program has helped over hundreds of students fulfill their career aspirations.
+A full-stack weather application that goes beyond basic temperature retrieval. I focused on building a resilient backend using Python and a responsive, framework-free frontend. I also intentionally used keyless APIs and web scraping so anyone cloning this repo can run it immediately without setting up billing accounts or API keys.
 
 ## Tech Stack
 
 * **Backend:** Python, FastAPI, Uvicorn
 * **Database:** SQLite 
-* **Frontend:** Vanilla HTML, CSS, JavaScript
+* **Frontend:** HTML, CSS, JavaScript
 
 ## Core Functionalities
 
@@ -47,9 +47,7 @@ I built a custom backend web scraper. When a user searches for a city, the backe
 
 1. **Clone the repository:**
 ```bash
-git clone [Your-Repository-URL]
-cd [Your-Repository-Folder]
-
+git clone https://github.com/anushacodes/weather-app-fullstack.git
 ```
 
 
@@ -71,5 +69,11 @@ uvicorn app:app --reload
 Open your web browser and go exactly to: `http://127.0.0.1:8000`
 
 
+
+The Product Manager Accelerator Program is designed to support PM professionals through every stage of their careers. From students looking for entry-level jobs to Directors looking to take on a leadership role, our program has helped over hundreds of students fulfill their career aspirations.
+
+
+
 Author
+
 Anusha Nandy | Master of Data Science Student
