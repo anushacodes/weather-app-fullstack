@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 900px; line-height: 1.6; background: #f4f7f6; }
+        .card { background: white; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .flex-container { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+        input, button { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { cursor: pointer; background: #0056b3; color: white; border: none; font-weight: bold; transition: 0.2s; }
+        button:hover { background: #004494; }
+        .btn-danger { background: #dc3545; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-success { background: #28a745; margin-bottom: 1rem; }
+        .forecast-grid { display: flex; gap: 10px; margin-top: 15px; overflow-x: auto; }
+        .forecast-card { background: #e9ecef; padding: 10px; border-radius: 8px; text-align: center; flex: 1; min-width: 100px; }
+        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #f8f9fa; }
+        #errorMsg { color: #dc3545; font-weight: bold; margin-top: 10px; display: none; }
+        #successMsg { color: #28a745; font-weight: bold; margin-top: 10px; display: none; }
+        iframe { width: 100%; height: 250px; border: none; border-radius: 8px; margin-top: 10px; background: #eee; }
+    </style>
+</head>
+
+<body>
+    <h1>Intelligent Weather Hub</h1>
+
+    <div class="card">
+        <h3>Search & Store Location Data</h3>
+        <div class="flex-container">
+            <input type="text" id="loc" placeholder="City, Landmark, or Zip" required>
+            <input type="date" id="start" required>
+            <input type="date" id="end" required>
+            <button onclick="createRecord()">Search & Save</button>
+        </div>
+        <div id="errorMsg"></div>
+        <div id="successMsg"></div>
+    </div>
+
+    <div id="advancedData" class="card" style="display: none;">
+        <h3>Location</h3>
+        <p><strong>About:</strong> <span id="wikiText"></span></p>
+
+        <h4>5-Day Forecast</h4>
+        <div class="forecast-grid" id="forecastBox"></div>
+
+        <h4>Map View</h4>
+        <iframe id="mapFrame" src=""></iframe>
+
+        <h4>🎥 Local Vibe</h4>
+        <iframe id="ytFrame" style="display: none; width: 100%; height: 315px; border: none; border-radius: 8px; margin-top: 10px; background: #eee;" allowfullscreen></iframe>
+    </div>
+
+    <button class="btn-success" onclick="window.location.href='/api/export/csv'">⬇ Export Data to CSV</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Location</th>
+                <th>Date Range</th>
+                <th>Avg Temp</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script>
+        document.getElementById('start').valueAsDate = new Date();
+        let tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('end').valueAsDate = tomorrow;
+
+        async function createRecord() {
+            const errorDiv = document.getElementById('errorMsg');
+            const successDiv = document.getElementById('successMsg');
+            const advancedDiv = document.getElementById('advancedData');
+
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            advancedDiv.style.display = 'none';
+
+            const data = {
+                location: document.getElementById('loc').value,
+                start_date: document.getElementById('start').value,
+                end_date: document.getElementById('end').value
+            };
+
+            try {
+                const res = await fetch('/api/weather', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if(!res.ok) {
+                    errorDiv.innerText = result.detail || "An error occurred";
+                    errorDiv.style.display = 'block';
+                } else {
+                    successDiv.innerText = result.message;
+                    successDiv.style.display = 'block';
+
+                    // Render Wikipedia Data
+                    document.getElementById('wikiText').innerText = result.wiki;
+
+                    // Render Map Data
+                    const bbox = `${result.lon - 0.05},${result.lat - 0.05},${result.lon + 0.05},${result.lat + 0.05}`;
+                    document.getElementById('mapFrame').src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${result.lat},${result.lon}`;
+
+                    // Render 5-Day Forecast
+                    const forecastBox = document.getElementById('forecastBox');
+                    forecastBox.innerHTML = '';
+                    for (let i = 0; i < 5; i++) {
+                        forecastBox.innerHTML += `
+                            <div class="forecast-card">
+                                <strong>${result.forecast.time[i].substring(5)}</strong><br>
+                                High: ${result.forecast.temperature_2m_max[i]}°C<br>
+                                Low: ${result.forecast.temperature_2m_min[i]}°C
+                            </div>
+                        `;
+                    }
+                    
+                    // Render YouTube Video
+                    const ytFrame = document.getElementById('ytFrame');
+                    if (result.youtube_id) {
+                        ytFrame.src = `https://www.youtube.com/embed/${result.youtube_id}`;
+                        ytFrame.style.display = 'block';
+                    } else {
+                        ytFrame.style.display = 'none';
+                    }
+
+                    // Display the container and update table
+                    advancedDiv.style.display = 'block';
+                    loadRecords();
+                }
+            } catch (err) {
+                errorDiv.innerText = "Network error. Ensure the backend is running.";
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        async function loadRecords() {
+            const res = await fetch('/api/weather');
+            const data = await res.json();
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            data.forEach(row => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${row.id}</td>
+                        <td>${row.location}</td>
+                        <td>${row.start_date} to ${row.end_date}</td>
+                        <td>${row.temperature}</td>
+                        <td>
+                            <button class="btn-warning" onclick="updateRecord(${row.id})">Edit</button>
+                            <button class="btn-danger" onclick="deleteRecord(${row.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function updateRecord(id) {
+            const newLoc = prompt("Enter a corrected location name:");
+            if (newLoc) {
+                await fetch(`/api/weather/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ location: newLoc })
+                });
+                loadRecords();
+            }
+        }
+
+        async function deleteRecord(id) {
+            if (confirm("Are you sure you want to delete this record?")) {
+                await fetch(`/api/weather/${id}`, { method: 'DELETE' });
+                loadRecords();
+            }
+        }
+
+        window.onload = loadRecords;
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,4 @@
+# backend
+fastapi
+uvicorn
+requests
